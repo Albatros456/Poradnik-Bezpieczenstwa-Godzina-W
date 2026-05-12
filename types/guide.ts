@@ -1,6 +1,8 @@
 export type Guide = {
   id: string;
-  categoryId: string;
   title: string;
+  category: string;
+  description: string;
   content: string;
+  keywords: string[];
 };

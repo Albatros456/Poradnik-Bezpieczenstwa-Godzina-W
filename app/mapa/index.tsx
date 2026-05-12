@@ -1,7 +1,16 @@
 import { Asset } from "expo-asset";
 import * as FileSystem from "expo-file-system/legacy";
-import { useEffect, useState } from "react";
-import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Magnetometer } from "expo-sensors";
+import { useEffect, useRef, useState } from "react";
+import {
+  Alert,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import MapView, { LocalTile, Marker } from "react-native-maps";
 
 type OfflineTile = {
@@ -52,6 +61,37 @@ function getLocalTilePathTemplate() {
     : pathTemplate;
 }
 
+function getDirection(degrees: number) {
+  if (degrees >= 337.5 || degrees < 22.5) {
+    return "N";
+  }
+  if (degrees < 67.5) {
+    return "NE";
+  }
+  if (degrees < 112.5) {
+    return "E";
+  }
+  if (degrees < 157.5) {
+    return "SE";
+  }
+  if (degrees < 202.5) {
+    return "S";
+  }
+  if (degrees < 247.5) {
+    return "SW";
+  }
+  if (degrees < 292.5) {
+    return "W";
+  }
+  return "NW";
+}
+
+function calculateHeading(x: number, y: number) {
+  let angle = Math.atan2(y, x) * (180 / Math.PI);
+  angle = angle >= 0 ? angle : angle + 360;
+  return Math.round(angle);
+}
+
 async function prepareOfflineTiles() {
   await FileSystem.makeDirectoryAsync(offlineTilesDirectory, { intermediates: true });
 
@@ -80,56 +120,121 @@ async function prepareOfflineTiles() {
 
 export default function MapScreen() {
   const [tilePathTemplate, setTilePathTemplate] = useState<string | null>(null);
-  const [statusText, setStatusText] = useState("Przygotowywanie kafelków offline...");
+  const [isCompassVisible, setIsCompassVisible] = useState(false);
+  const [heading, setHeading] = useState(0);
+  const compassSubscriptionRef = useRef<ReturnType<typeof Magnetometer.addListener> | null>(
+    null,
+  );
+
+  const stopCompass = () => {
+    compassSubscriptionRef.current?.remove();
+    compassSubscriptionRef.current = null;
+    setIsCompassVisible(false);
+  };
+
+  const startCompass = async () => {
+    const isAvailable = await Magnetometer.isAvailableAsync();
+
+    if (!isAvailable) {
+      Alert.alert("Kompas nie jest dostępny na tym urządzeniu.");
+      return;
+    }
+
+    Magnetometer.setUpdateInterval(300);
+    compassSubscriptionRef.current = Magnetometer.addListener(({ x, y }) => {
+      setHeading(calculateHeading(x, y));
+    });
+    setIsCompassVisible(true);
+  };
+
+  const toggleCompass = () => {
+    if (isCompassVisible) {
+      stopCompass();
+      return;
+    }
+
+    void startCompass();
+  };
 
   useEffect(() => {
     void prepareOfflineTiles()
-      .then(() => {
-        setTilePathTemplate(getLocalTilePathTemplate());
-        setStatusText("Kafelki offline są gotowe i wyświetlane z pamięci urządzenia.");
-      })
-      .catch(() => {
-        setStatusText("Nie udało się przygotować kafelków offline.");
-      });
+      .then(() => setTilePathTemplate(getLocalTilePathTemplate()))
+      .catch(() => {});
+
+    return () => {
+      compassSubscriptionRef.current?.remove();
+      compassSubscriptionRef.current = null;
+    };
   }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.container}>
         <Text style={styles.title}>Mapa offline</Text>
-        <Text style={styles.description}>
-          Mapa używa lokalnych kafelków zapisanych w aplikacji. Nie pobiera
-          kafelków z internetu.
-        </Text>
 
-        <View style={styles.mapCard}>
-          <MapView
-            initialRegion={offlineRegion}
-            mapType="none"
-            maxZoomLevel={2}
-            minZoomLevel={0}
-            style={styles.map}
-          >
-            {tilePathTemplate ? (
-              <LocalTile
-                pathTemplate={tilePathTemplate}
-                tileSize={256}
-                zIndex={1}
+        <Pressable
+          accessibilityRole="button"
+          onPress={toggleCompass}
+          style={({ pressed }) => [styles.compassButton, pressed && styles.pressed]}
+        >
+          <Text style={styles.compassButtonText}>
+            {isCompassVisible ? "Zamknij kompas" : "Uruchom kompas"}
+          </Text>
+        </Pressable>
+
+        <View style={styles.content}>
+          {isCompassVisible ? (
+            <View style={styles.compassCard}>
+              <View style={styles.compassCircle}>
+                <Text style={[styles.compassLetter, styles.northLetter]}>N</Text>
+                <Text style={[styles.compassLetter, styles.eastLetter]}>E</Text>
+                <Text style={[styles.compassLetter, styles.southLetter]}>S</Text>
+                <Text style={[styles.compassLetter, styles.westLetter]}>W</Text>
+                <View
+                  style={[
+                    styles.compassNeedle,
+                    { transform: [{ rotate: `${heading}deg` }] },
+                  ]}
+                >
+                  <View style={styles.needleNorth} />
+                  <View style={styles.needleSouth} />
+                  <View style={styles.needleCenter} />
+                </View>
+              </View>
+              <View style={styles.compassInfo}>
+                <Text style={styles.directionText}>{getDirection(heading)}</Text>
+                <Text style={styles.headingText}>{heading}°</Text>
+              </View>
+            </View>
+          ) : null}
+
+          <View style={styles.mapCard}>
+            <MapView
+              initialRegion={offlineRegion}
+              mapType="none"
+              maxZoomLevel={2}
+              minZoomLevel={0}
+              style={styles.map}
+            >
+              {tilePathTemplate ? (
+                <LocalTile
+                  pathTemplate={tilePathTemplate}
+                  tileSize={256}
+                  zIndex={1}
+                />
+              ) : null}
+
+              <Marker
+                coordinate={{
+                  latitude: offlineRegion.latitude,
+                  longitude: offlineRegion.longitude,
+                }}
+                title="Przykładowy punkt"
               />
-            ) : null}
-
-            <Marker
-              coordinate={{
-                latitude: offlineRegion.latitude,
-                longitude: offlineRegion.longitude,
-              }}
-              title="Przykładowy punkt"
-            />
-          </MapView>
+            </MapView>
+          </View>
         </View>
-
-        <Text style={styles.offlineInfo}>{statusText}</Text>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -140,47 +245,150 @@ const styles = StyleSheet.create({
     backgroundColor: "#F6F8FB",
   },
   container: {
-    flexGrow: 1,
+    flex: 1,
     padding: 24,
   },
   title: {
     color: "#0B1F3A",
     fontSize: 34,
     fontWeight: "700",
-    marginBottom: 12,
+    marginBottom: 14,
     textAlign: "center",
   },
-  description: {
-    color: "#35465F",
+  compassButton: {
+    alignItems: "center",
+    backgroundColor: "#2563FF",
+    borderRadius: 16,
+    justifyContent: "center",
+    marginBottom: 16,
+    minHeight: 56,
+  },
+  compassButtonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "800",
+  },
+  content: {
+    flex: 1,
+    gap: 16,
+  },
+  compassCard: {
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E1E7F0",
+    borderRadius: 18,
+    borderWidth: 1,
+    elevation: 3,
+    flexDirection: "row",
+    gap: 18,
+    height: 190,
+    justifyContent: "center",
+    padding: 16,
+    shadowColor: "#0B1F3A",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+  },
+  compassCircle: {
+    alignItems: "center",
+    borderColor: "#E1E7F0",
+    borderRadius: 66,
+    borderWidth: 2,
+    height: 132,
+    justifyContent: "center",
+    width: 132,
+  },
+  compassLetter: {
+    color: "#0B1F3A",
     fontSize: 16,
-    lineHeight: 23,
-    marginBottom: 22,
-    textAlign: "center",
+    fontWeight: "800",
+    position: "absolute",
+  },
+  northLetter: {
+    top: 8,
+  },
+  eastLetter: {
+    right: 10,
+  },
+  southLetter: {
+    bottom: 8,
+  },
+  westLetter: {
+    left: 10,
+  },
+  compassNeedle: {
+    alignItems: "center",
+    height: 90,
+    left: "50%",
+    marginLeft: -8,
+    marginTop: -45,
+    position: "absolute",
+    top: "50%",
+    width: 16,
+  },
+  needleNorth: {
+    borderBottomColor: "#FF2D3D",
+    borderBottomWidth: 45,
+    borderLeftColor: "transparent",
+    borderLeftWidth: 8,
+    borderRightColor: "transparent",
+    borderRightWidth: 8,
+    height: 0,
+    width: 0,
+  },
+  needleSouth: {
+    borderLeftColor: "transparent",
+    borderLeftWidth: 6,
+    borderRightColor: "transparent",
+    borderRightWidth: 6,
+    borderTopColor: "#0B1F3A",
+    borderTopWidth: 35,
+    height: 0,
+    width: 0,
+  },
+  needleCenter: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#0B1F3A",
+    borderRadius: 7,
+    borderWidth: 2,
+    height: 14,
+    left: 1,
+    position: "absolute",
+    top: 38,
+    width: 14,
+  },
+  compassInfo: {
+    alignItems: "center",
+    minWidth: 92,
+  },
+  headingText: {
+    color: "#0B1F3A",
+    fontSize: 26,
+    fontWeight: "800",
+    marginTop: 4,
+  },
+  directionText: {
+    color: "#2563FF",
+    fontSize: 34,
+    fontWeight: "800",
   },
   mapCard: {
     backgroundColor: "#FFFFFF",
     borderColor: "#E1E7F0",
     borderRadius: 18,
     borderWidth: 1,
-    height: 420,
+    elevation: 3,
+    flex: 1,
     overflow: "hidden",
     shadowColor: "#0B1F3A",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
-    elevation: 3,
   },
   map: {
     flex: 1,
   },
-  offlineInfo: {
-    backgroundColor: "#E7F0FF",
-    borderRadius: 14,
-    color: "#0B1F3A",
-    fontSize: 15,
-    lineHeight: 22,
-    marginTop: 18,
-    padding: 16,
-    textAlign: "center",
+  pressed: {
+    opacity: 0.75,
   },
 });
