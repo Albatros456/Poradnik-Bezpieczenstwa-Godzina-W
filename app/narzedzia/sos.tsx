@@ -4,12 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type SosMode = "latarka" | "ekran" | "dzwiek";
 type SosStep = {
@@ -203,6 +203,7 @@ export default function SosScreen() {
 
   return (
     <SafeAreaView
+      edges={["left", "right", "bottom"]}
       style={[styles.safeArea, screenFlashOn && styles.safeAreaFlashing]}
     >
       <ScrollView contentContainerStyle={styles.container}>
@@ -303,6 +304,7 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 24,
+    paddingTop: 12,
   },
   title: {
     color: "#0B1F3A",

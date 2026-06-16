@@ -2,13 +2,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import {
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
+import { colors } from "../constants/colors";
 import { ROUTES } from "../constants/routes";
 
 type IconName = keyof typeof Ionicons.glyphMap;
@@ -31,7 +32,7 @@ function MenuCard({ title, iconName, onPress }: MenuCardProps) {
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
       <View style={styles.iconCircle}>
-        <Ionicons name={iconName} size={30} color="#2563FF" />
+        <Ionicons name={iconName} size={28} color={colors.primary} />
       </View>
       <Text style={styles.cardText}>{title}</Text>
     </Pressable>
@@ -73,7 +74,7 @@ export default function HomeScreen() {
             onPress={() => router.push(ROUTES.guides)}
           />
           <MenuCard
-            title="Mapa offline"
+            title="Mapy"
             iconName="map-outline"
             onPress={() => router.push(ROUTES.map)}
           />
@@ -81,6 +82,16 @@ export default function HomeScreen() {
             title="Notatnik"
             iconName="create-outline"
             onPress={() => router.push(ROUTES.notes)}
+          />
+          <MenuCard
+            title="Plan kryzysowy"
+            iconName="people-outline"
+            onPress={() => router.push(ROUTES.crisisPlan)}
+          />
+          <MenuCard
+            title="Spakuj plecak"
+            iconName="bag-outline"
+            onPress={() => router.push(ROUTES.packBackpack)}
           />
         </View>
 
@@ -108,82 +119,90 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F6F8FB",
+    backgroundColor: colors.background,
   },
   container: {
+    alignSelf: "center",
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 30,
-    paddingBottom: 36,
+    maxWidth: 720,
+    paddingBottom: 32,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    width: "100%",
   },
   title: {
-    color: "#0B1F3A",
-    fontSize: 34,
-    fontWeight: "700",
+    color: colors.text,
+    fontSize: 32,
+    fontWeight: "800",
+    letterSpacing: -0.8,
+    lineHeight: 39,
+    marginTop: 12,
     textAlign: "center",
-    marginTop: 25,
   },
   menu: {
-    gap: 20,
-    marginTop: 44,
+    gap: 14,
+    marginTop: 32,
   },
   card: {
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E1E7F0",
-    borderRadius: 18,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 20,
     borderWidth: 1,
-    elevation: 3,
+    elevation: 2,
     flexDirection: "row",
-    minHeight: 112,
-    paddingHorizontal: 32,
-    shadowColor: "#0B1F3A",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
+    minHeight: 96,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    shadowColor: colors.text,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
   },
   iconCircle: {
     alignItems: "center",
-    backgroundColor: "#DCEBFF",
-    borderRadius: 32,
-    height: 64,
+    backgroundColor: colors.surfaceAccent,
+    borderRadius: 28,
+    height: 56,
     justifyContent: "center",
-    width: 64,
+    width: 56,
   },
   cardText: {
-    color: "#0B1F3A",
-    fontSize: 22,
+    color: colors.text,
+    flex: 1,
+    fontSize: 19,
     fontWeight: "700",
-    marginLeft: 24,
+    lineHeight: 25,
+    marginLeft: 18,
   },
   spacer: {
     flex: 1,
-    minHeight: 24,
+    minHeight: 28,
   },
   bottomButtons: {
-    gap: 18,
+    gap: 12,
   },
   bottomButton: {
     alignItems: "center",
     borderRadius: 18,
-    elevation: 4,
+    elevation: 2,
     flexDirection: "row",
     justifyContent: "center",
-    minHeight: 82,
+    minHeight: 66,
     paddingHorizontal: 18,
-    shadowColor: "#0B1F3A",
+    shadowColor: colors.text,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 8,
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
   },
   bottomButtonText: {
-    color: "#FFFFFF",
-    fontSize: 22,
+    color: colors.white,
+    fontSize: 18,
     fontWeight: "700",
-    marginLeft: 14,
+    marginLeft: 12,
     textAlign: "center",
   },
   pressed: {
-    opacity: 0.75,
+    opacity: 0.82,
   },
 });

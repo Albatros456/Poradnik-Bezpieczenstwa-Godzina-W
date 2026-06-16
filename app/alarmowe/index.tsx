@@ -2,13 +2,14 @@ import {
   Alert,
   Linking,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
+import { colors } from "../../constants/colors";
 import { emergencyNumbers } from "../../data/emergencyNumbers";
 
 export default function EmergencyNumbersScreen() {
@@ -25,7 +26,7 @@ export default function EmergencyNumbersScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Numery alarmowe</Text>
 
@@ -33,8 +34,17 @@ export default function EmergencyNumbersScreen() {
           {emergencyNumbers.map((item) => (
             <View key={item.id} style={styles.card}>
               <Text style={styles.phoneNumber}>{item.phoneNumber}</Text>
-              <Text style={styles.label}>{item.label}</Text>
-              <Text style={styles.description}>{item.description}</Text>
+              <Text
+                style={[
+                  styles.label,
+                  item.phoneNumber !== "112" && styles.labelWithoutDescription,
+                ]}
+              >
+                {item.label}
+              </Text>
+              {item.phoneNumber === "112" ? (
+                <Text style={styles.description}>{item.description}</Text>
+              ) : null}
 
               <Pressable
                 accessibilityRole="button"
@@ -57,65 +67,76 @@ export default function EmergencyNumbersScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F6F8FB",
+    backgroundColor: colors.background,
   },
   container: {
-    padding: 24,
+    alignSelf: "center",
+    maxWidth: 720,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    width: "100%",
   },
   title: {
-    color: "#0B1F3A",
-    fontSize: 34,
-    fontWeight: "700",
+    color: colors.text,
+    fontSize: 30,
+    fontWeight: "800",
+    letterSpacing: -0.6,
     marginBottom: 24,
     textAlign: "center",
   },
   list: {
-    gap: 16,
+    gap: 14,
   },
   card: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E1E7F0",
-    borderRadius: 18,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 20,
     borderWidth: 1,
-    padding: 18,
-    shadowColor: "#0B1F3A",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    padding: 20,
+    shadowColor: colors.text,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+    elevation: 2,
   },
   phoneNumber: {
-    color: "#2563FF",
-    fontSize: 32,
+    color: colors.primary,
+    fontSize: 30,
     fontWeight: "800",
-    marginBottom: 6,
+    letterSpacing: -0.5,
+    marginBottom: 4,
   },
   label: {
-    color: "#0B1F3A",
-    fontSize: 20,
-    fontWeight: "700",
+    color: colors.text,
+    fontSize: 19,
+    fontWeight: "800",
+    lineHeight: 25,
     marginBottom: 8,
   },
+  labelWithoutDescription: {
+    marginBottom: 18,
+  },
   description: {
-    color: "#35465F",
+    color: colors.textSecondary,
     fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 16,
+    lineHeight: 23,
+    marginBottom: 18,
   },
   dialButton: {
     alignItems: "center",
-    alignSelf: "flex-start",
-    backgroundColor: "#E7F0FF",
-    borderRadius: 12,
+    backgroundColor: colors.surfaceAccent,
+    borderRadius: 14,
+    justifyContent: "center",
+    minHeight: 48,
     paddingHorizontal: 18,
-    paddingVertical: 10,
   },
   dialButtonText: {
-    color: "#2563FF",
+    color: colors.primary,
     fontSize: 16,
     fontWeight: "700",
   },
   pressed: {
-    opacity: 0.75,
+    opacity: 0.82,
   },
 });

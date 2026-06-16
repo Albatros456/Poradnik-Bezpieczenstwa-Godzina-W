@@ -2,13 +2,14 @@ import { useFocusEffect, router } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
+import { colors } from "../../constants/colors";
 import { ROUTES } from "../../constants/routes";
 import { loadNotes } from "../../services/notesService";
 import type { Note } from "../../types/note";
@@ -33,7 +34,7 @@ export default function NotesScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Notatnik</Text>
 
@@ -75,76 +76,83 @@ export default function NotesScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F6F8FB",
+    backgroundColor: colors.background,
   },
   container: {
+    alignSelf: "center",
     flexGrow: 1,
-    padding: 24,
+    maxWidth: 720,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    width: "100%",
   },
   title: {
-    color: "#0B1F3A",
-    fontSize: 34,
-    fontWeight: "700",
+    color: colors.text,
+    fontSize: 30,
+    fontWeight: "800",
+    letterSpacing: -0.6,
     marginBottom: 24,
     textAlign: "center",
   },
   addButton: {
     alignItems: "center",
-    backgroundColor: "#2563FF",
+    backgroundColor: colors.primary,
     borderRadius: 16,
-    minHeight: 58,
     justifyContent: "center",
-    marginBottom: 24,
-    shadowColor: "#0B1F3A",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.14,
-    shadowRadius: 6,
-    elevation: 3,
+    marginBottom: 22,
+    minHeight: 54,
+    shadowColor: colors.text,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 2,
   },
   addButtonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
+    color: colors.white,
+    fontSize: 17,
     fontWeight: "700",
   },
   emptyText: {
-    color: "#0B1F3A",
-    fontSize: 17,
+    color: colors.textSecondary,
+    fontSize: 16,
     lineHeight: 24,
-    marginTop: 24,
+    marginTop: 32,
     textAlign: "center",
   },
   list: {
-    gap: 16,
+    gap: 14,
   },
   noteCard: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E1E7F0",
-    borderRadius: 18,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 20,
     borderWidth: 1,
-    padding: 18,
-    shadowColor: "#0B1F3A",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    padding: 20,
+    shadowColor: colors.text,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+    elevation: 2,
   },
   noteTitle: {
-    color: "#0B1F3A",
-    fontSize: 20,
-    fontWeight: "700",
+    color: colors.text,
+    fontSize: 19,
+    fontWeight: "800",
+    lineHeight: 25,
     marginBottom: 8,
   },
   noteContent: {
-    color: "#35465F",
-    fontSize: 16,
-    lineHeight: 22,
+    color: colors.textSecondary,
+    fontSize: 15,
+    lineHeight: 23,
     marginBottom: 12,
   },
   noteDate: {
-    color: "#6B7A90",
+    color: colors.textMuted,
     fontSize: 13,
   },
   pressed: {
-    opacity: 0.75,
+    opacity: 0.82,
   },
 });

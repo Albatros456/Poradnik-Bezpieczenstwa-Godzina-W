@@ -3,13 +3,14 @@ import { useEffect, useState } from "react";
 import {
   Alert,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
+import { colors } from "../../constants/colors";
 import {
   deleteNote,
   getNoteById,
@@ -74,7 +75,7 @@ export default function NoteDetailsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Edytuj notatkę</Text>
 
@@ -119,59 +120,67 @@ export default function NoteDetailsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F6F8FB",
+    backgroundColor: colors.background,
   },
   container: {
+    alignSelf: "center",
     flexGrow: 1,
-    padding: 24,
+    maxWidth: 720,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    width: "100%",
   },
   title: {
-    color: "#0B1F3A",
-    fontSize: 34,
-    fontWeight: "700",
+    color: colors.text,
+    fontSize: 30,
+    fontWeight: "800",
+    letterSpacing: -0.6,
     marginBottom: 24,
     textAlign: "center",
   },
   input: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E1E7F0",
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderRadius: 16,
     borderWidth: 1,
-    color: "#0B1F3A",
-    fontSize: 17,
-    marginBottom: 16,
-    padding: 16,
+    color: colors.text,
+    fontSize: 16,
+    marginBottom: 14,
+    minHeight: 54,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
   contentInput: {
-    minHeight: 220,
+    minHeight: 240,
   },
   saveButton: {
     alignItems: "center",
-    backgroundColor: "#2563FF",
+    backgroundColor: colors.primary,
     borderRadius: 16,
-    minHeight: 58,
     justifyContent: "center",
     marginTop: 8,
+    minHeight: 54,
   },
   saveButtonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
+    color: colors.white,
+    fontSize: 17,
     fontWeight: "700",
   },
   deleteButton: {
     alignItems: "center",
-    backgroundColor: "#FF2D3D",
+    backgroundColor: colors.danger,
     borderRadius: 16,
-    minHeight: 58,
     justifyContent: "center",
     marginTop: 14,
+    minHeight: 54,
   },
   deleteButtonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
+    color: colors.white,
+    fontSize: 17,
     fontWeight: "700",
   },
   pressed: {
-    opacity: 0.75,
+    opacity: 0.82,
   },
 });
